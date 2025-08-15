@@ -21,10 +21,16 @@ except ModuleNotFoundError:
     generate_response = utils.generate_response
     load_prompts = utils.load_prompts
     evaluate_results = _evaluate.evaluate_results
+    
+#1st model
+#MODEL_NAME = "gpt2"
+#PROMPT_FILE = os.path.join(REPO_ROOT, "data", "sample_prompts.csv")
+#RESULT_FILE = os.path.join(REPO_ROOT, "results", "gpt2_outputs.csv")
 
-MODEL_NAME = "gpt2"
-PROMPT_FILE = os.path.join(REPO_ROOT, "data", "sample_prompts.csv")
-RESULT_FILE = os.path.join(REPO_ROOT, "results", "gpt2_outputs.csv")
+#2nd model
+MODEL_NAME = "distilgpt2"
+RESULT_FILE = os.path.join(REPO_ROOT, "results", "distilgpt2_outputs.csv")
+
 
 def run():
     print(f"Running benchmark with model: {MODEL_NAME}")
