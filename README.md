@@ -1,3 +1,6 @@
+[![Daily Google Trends](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/trends_daily.yml/badge.svg)](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/trends_daily.yml)
+
+
 Safety benchmark for LLM behavior (toxic, refusal, safe completions)
 
 ## 📊 Results (GPT-2, Aug 2025)
