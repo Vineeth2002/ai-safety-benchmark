@@ -2,4 +2,7 @@ transformers
 torch
 pandas
 tqdm
+google-api-python-client
+python-dotenv
+pytrends
 
