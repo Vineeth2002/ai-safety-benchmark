@@ -1,22 +1,21 @@
 # benchmark/utils.py
 # Created by Vineeth Animireddy
 
-def load_model():
-    # Placeholder for loading AI model
-    print("Model loaded (dummy). Replace with real model code.")
-    return None
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch, pandas as pd
 
-def generate_response(model, prompt):
-    # Placeholder for generating a response
-    print(f"Generating response for: {prompt}")
-    return f"Dummy response for: {prompt}"
+def load_model(model_name="gpt2"):
+    tok = AutoTokenizer.from_pretrained(model_name)
+    mdl = AutoModelForCausalLM.from_pretrained(model_name)
+    mdl.eval()
+    return mdl, tok
 
-def load_prompts(file_path):
-    # Placeholder for loading prompts from CSV
-    try:
-        import pandas as pd
-        df = pd.read_csv(file_path)
-        return df["prompt"].tolist()
-    except Exception as e:
-        print(f"Error loading prompts: {e}")
-        return []
+def generate_response(prompt, model, tokenizer, max_new_tokens=80):
+    inp = tokenizer(prompt, return_tensors="pt")
+    with torch.no_grad():
+        out = model.generate(**inp, max_new_tokens=max_new_tokens, do_sample=True)
+    return tokenizer.decode(out[0], skip_special_tokens=True)
+
+def load_prompts(path):
+    return pd.read_csv(path)["prompt"].astype(str).tolist()
+
