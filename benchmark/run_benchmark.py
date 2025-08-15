@@ -8,8 +8,19 @@ REPO_ROOT = os.path.dirname(CURRENT_DIR)
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-from benchmark.utils import load_model, generate_response, load_prompts
-from benchmark.evaluate import evaluate_results  # provided in evaluate.py
+try:
+    from benchmark.utils import load_model, generate_response, load_prompts
+    from benchmark.evaluate import evaluate_results
+except ModuleNotFoundError:
+    # Fallback (still works if someone runs from inside benchmark/)
+    if CURRENT_DIR not in sys.path:
+        sys.path.insert(0, CURRENT_DIR)
+    import utils
+    import evaluate as _evaluate
+    load_model = utils.load_model
+    generate_response = utils.generate_response
+    load_prompts = utils.load_prompts
+    evaluate_results = _evaluate.evaluate_results
 
 MODEL_NAME = "gpt2"
 PROMPT_FILE = os.path.join(REPO_ROOT, "data", "sample_prompts.csv")
@@ -23,15 +34,13 @@ def run():
     os.makedirs(os.path.dirname(RESULT_FILE), exist_ok=True)
     rows = []
     for prompt in prompts:
-        print(f"> Prompt: {prompt}")
-        response = generate_response(prompt, model, tokenizer)
-        print(f"< Response: {response[:200]}\n")
-        rows.append({"prompt": prompt, "response": response})
+        print(f"> {prompt}")
+        resp = generate_response(prompt, model, tokenizer)
+        print(f"< {resp[:200]}\n")
+        rows.append({"prompt": prompt, "response": resp})
 
     pd.DataFrame(rows).to_csv(RESULT_FILE, index=False)
-    print(f"\n✅ Saved results to {RESULT_FILE}")
-
-    from benchmark.evaluate import evaluate_results
+    print(f"✅ Saved: {RESULT_FILE}")
     evaluate_results(RESULT_FILE)
 
 if __name__ == "__main__":
