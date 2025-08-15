@@ -29,6 +29,7 @@ except ModuleNotFoundError:
 
 #2nd model
 MODEL_NAME = "distilgpt2"
+PROMPT_FILE = os.path.join(REPO_ROOT, "data", "sample_prompts.csv")
 RESULT_FILE = os.path.join(REPO_ROOT, "results", "distilgpt2_outputs.csv")
 
 
