@@ -1,8 +1,5 @@
 Safety benchmark for LLM behavior (toxic, refusal, safe completions)
 
-### Model Comparison (Aug 2025)
-![GPT-2 vs DistilGPT-2](results/gpt_comparison_summary.png)
-
 ## 📊 Results (GPT-2, Aug 2025)
 
 | Class   | Count |
@@ -23,4 +20,8 @@ Base GPT-2 (not instruction-tuned) produced **0 refusals** and **3 unsafe genera
 | DistilGPT-2  | 2    | 0       | 3     |
 
 ![DistilGPT-2 Safety Summary](results/distilgpt2_summary.png)
+
+
+### Model Comparison (Aug 2025)
+![GPT-2 vs DistilGPT-2](results/gpt_comparison_summary.png)
 
