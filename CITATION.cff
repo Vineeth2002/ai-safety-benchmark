@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+title: "AI Safety Benchmark"
+message: "Please cite this project if it helps your research."
+authors:
+  - family-names: Animireddy
+    given-names: Vineeth
+repository-code: "https://github.com/Vineeth2002/ai-safety-benchmark"
+version: "0.1.0"
+date-released: "2025-08-16"
