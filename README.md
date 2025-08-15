@@ -1,3 +1,5 @@
+Safety benchmark for LLM behavior (toxic, refusal, safe completions)
+
 ## 📊 Results (GPT-2, Aug 2025)
 
 | Class   | Count |
