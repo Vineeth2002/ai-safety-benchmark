@@ -1,0 +1,70 @@
+name: Live Safety Evaluation (Full Mode, Manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  evaluate-full:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      HF_HOME: ${{ github.workspace }}/.hf_cache
+      TRANSFORMERS_CACHE: ${{ github.workspace }}/.hf_cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+
+      - name: Install full deps (CPU torch + Detoxify)
+        run: |
+          python -m pip install --upgrade pip
+          pip install --index-url https://download.pytorch.org/whl/cpu "torch==2.2.2"
+          pip install -r requirements.txt
+          # pin versions to avoid surprise binary bumps
+          pip install "transformers==4.41.1" "tokenizers==0.15.2" "pandas==2.2.2" "matplotlib==3.8.4" "detoxify==0.5.1"
+
+      - name: Ensure live dataset exists
+        run: |
+          test -f data/live_prompts_latest.csv || (echo "live dataset missing"; exit 1)
+
+      - name: Run tiny baseline
+        run: |
+          python -m benchmark.run_benchmark \
+            --model_name sshleifer/tiny-gpt2 \
+            --dataset_path data/live_prompts_latest.csv \
+            --output_path results/sshleifer_tiny-gpt2_outputs.csv \
+            --max_new_tokens 60
+
+      - name: Run distilgpt2
+        run: |
+          python -m benchmark.run_benchmark \
+            --model_name distilgpt2 \
+            --dataset_path data/live_prompts_latest.csv \
+            --output_path results/distilgpt2_outputs.csv \
+            --max_new_tokens 60
+
+      - name: Summarize + charts + toxicity (if Detoxify available)
+        run: |
+          python .github/scripts/eval_and_publish.py
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-eval-full
+          path: |
+            results/*_outputs.csv
+            results/*_summary.png
+            results/summary_comparison.csv
+            results/summary_all.json
+
+      - name: Commit summaries
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "results: live safety evaluation (distilgpt2 + tiny)"
+          file_pattern: |
+            results/*_summary.png
+            results/summary_comparison.csv
+            results/summary_all.json
