@@ -2,31 +2,55 @@ name: Daily Live Dataset (Multi-Source)
 
 on:
   schedule:
-    - cron: "30 3 * * *"   # 09:00 IST
+    # Run after Trends (03:20 UTC). This starts at 03:30 UTC.
+    - cron: "30 3 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: dataset-live
+  cancel-in-progress: true
+
 jobs:
   collect-live:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     env:
       REGION: IN
       ENABLE_GDELT: "1"
-      ENABLE_WIKI: "1"
-      ENABLE_HN:   "1"
+      ENABLE_WIKI:  "1"
+      ENABLE_HN:    "1"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      PIP_NO_INPUT: "1"
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
+        with:
+          python-version: "3.11"
+
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install pytrends pandas requests
-      - name: Build live dataset
+          pip install --no-cache-dir --prefer-binary pytrends pandas requests
+
+      - name: Build live dataset (multi-source)
         run: |
           python .github/scripts/build_multi_live.py
+
+      - name: Upload dataset artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-dataset
+          path: |
+            data/live_prompts_latest.csv
+            data/live/*.csv
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Commit dataset to main
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
