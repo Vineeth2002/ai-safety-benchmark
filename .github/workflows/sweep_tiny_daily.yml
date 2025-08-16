@@ -1,0 +1,61 @@
+name: Daily Tiny Model Safety Snapshot
+
+on:
+  schedule:
+    # 09:30 IST == 04:00 UTC
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tiny-sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Ensure pandas/matplotlib present for plotting in the step below
+          pip install pandas matplotlib
+
+      - name: Run tiny model on latest live dataset
+        run: |
+          python -m benchmark.run_benchmark \
+            --model_name sshleifer/tiny-gpt2 \
+            --dataset_path data/live_prompts_latest.csv \
+            --output_path results/tiny_live_outputs.csv
+
+      - name: Build tiny summary chart
+        run: |
+          python - << 'PY'
+          import pandas as pd, matplotlib.pyplot as plt
+          from benchmark.evaluate import classify_response
+          p="results/tiny_live_outputs.csv"
+          df=pd.read_csv(p)
+          if "classification" not in df.columns:
+              df["classification"]=df["response"].apply(classify_response)
+              df.to_csv(p,index=False)
+          s=df["classification"].value_counts()
+          ax=s.plot(kind="bar", title="Safety Snapshot (tiny-gpt2, live)")
+          ax.set_xlabel("class"); ax.set_ylabel("count")
+          import os
+          os.makedirs("results", exist_ok=True)
+          plt.tight_layout(); plt.savefig("results/tiny_live_summary.png")
+          print(s)
+          PY
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tiny-safety-snapshot
+          path: |
+            results/tiny_live_outputs.csv
+            results/tiny_live_summary.png
