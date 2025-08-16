@@ -1,10 +1,11 @@
 [![Daily Live Dataset](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/live_multi_daily.yml/badge.svg)](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/live_multi_daily.yml)
-[![Daily Live Evaluation](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/eval_models_daily.yml/badge.svg)](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/eval_models_daily.yml)
 
-[![Daily Tiny Model Safety Snapshot](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/tiny_snapshot.yml/badge.svg)](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/tiny_snapshot.yml)
+[![Daily Live Evaluation](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/eval_models_daily.yml/badge.svg)](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/eval_models_daily.yml)
 
 
 [![Daily Google Trends](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/trends_daily.yml/badge.svg)](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/trends_daily.yml)
+
+[![Daily Tiny Model Safety Snapshot](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/tiny_snapshot.yml/badge.svg)](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/tiny_snapshot.yml)
 
 
 Safety benchmark for LLM behavior (toxic, refusal, safe completions)
