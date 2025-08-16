@@ -14,8 +14,7 @@ jobs:
     env:
       HF_HOME: ${{ github.workspace }}/.hf_cache
       TRANSFORMERS_CACHE: ${{ github.workspace }}/.hf_cache
-      # tell our evaluator to SKIP Detoxify entirely
-      DISABLE_DETOXIFY: "1"
+      DISABLE_DETOXIFY: "1"   # skip Detoxify in safe mode
     steps:
       - uses: actions/checkout@v4
 
@@ -26,15 +25,15 @@ jobs:
       - name: Install deps (small, CPU only)
         run: |
           python -m pip install --upgrade pip
-          # small CPU torch wheel; avoid CUDA on Actions
+          # CPU torch (no CUDA on Actions)
           pip install --index-url https://download.pytorch.org/whl/cpu "torch==2.2.2"
-          # pin light, stable libs
+          # light, pinned libs
           pip install "transformers==4.41.1" "tokenizers==0.15.2" "pandas==2.2.2" "matplotlib==3.8.4"
 
       - name: Ensure live dataset exists (create tiny fallback if missing)
         run: |
           python - << 'PY'
-          import os, pandas as pd
+          import os, pandas as pd, shutil
           p = "data/live_prompts_latest.csv"
           if not os.path.exists(p):
               print("[WARN] live pointer missing; creating minimal fallback")
@@ -43,35 +42,59 @@ jobs:
                       for t in ["AI news","Tech trends","Machine learning"]]
               os.makedirs("data", exist_ok=True)
               pd.DataFrame(rows).to_csv(p, index=False)
-          print("Using dataset:", p)
+          # Legacy compatibility: mirror live → sample so old runner uses live data too
+          shutil.copyfile(p, "data/sample_prompts.csv")
+          print("Using dataset:", p, "and mirrored to data/sample_prompts.csv for legacy mode.")
           PY
 
-      - name: Run tiny-gpt2 on live data (fast, low memory)
-        run: |
-          python -m benchmark.run_benchmark \
-            --model_name sshleifer/tiny-gpt2 \
-            --dataset_path data/live_prompts_latest.csv \
-            --output_path results/tiny_live_outputs.csv \
-            --max_new_tokens 40
-
-      - name: Summarize + bar chart (rule-based only)
+      - name: Run tiny model (try CLI; fall back to legacy script)
         run: |
           python - << 'PY'
-          import pandas as pd, matplotlib
-          matplotlib.use("Agg")
+          import subprocess, sys
+          cmds = [
+            ["python","-m","benchmark.run_benchmark",
+             "--model_name","sshleifer/tiny-gpt2",
+             "--dataset_path","data/sample_prompts.csv",
+             "--output_path","results/tiny_live_outputs.csv",
+             "--max_new_tokens","40"],
+            ["python","benchmark/run_benchmark.py"]
+          ]
+          for cmd in cmds:
+              print(">> trying:", " ".join(cmd), flush=True)
+              r = subprocess.run(cmd)
+              if r.returncode == 0:
+                  print("OK:", " ".join(cmd))
+                  sys.exit(0)
+          print("Both runner modes failed.", flush=True)
+          sys.exit(1)
+          PY
+
+      - name: Summarize + bar chart (auto-detect latest outputs)
+        run: |
+          python - << 'PY'
+          import glob, os, pandas as pd
+          import matplotlib; matplotlib.use("Agg")
           import matplotlib.pyplot as plt
           from benchmark.evaluate import classify_response
 
-          p="results/tiny_live_outputs.csv"
-          df=pd.read_csv(p)
+          cands = sorted(glob.glob("results/*_outputs.csv"), key=os.path.getmtime)
+          if not cands:
+              raise SystemExit("No outputs CSV found in results/")
+          p = cands[-1]
+          print("Using outputs:", p)
+
+          df = pd.read_csv(p)
           if "classification" not in df.columns:
-              df["classification"]=df["response"].apply(classify_response)
-              df.to_csv(p,index=False)
-          s=df["classification"].value_counts()
-          ax=s.plot(kind="bar", title="Safety Snapshot (tiny-gpt2, live)")
+              df["classification"] = df["response"].apply(classify_response)
+              df.to_csv(p, index=False)
+
+          s = df["classification"].value_counts()
+          ax = s.plot(kind="bar", title=f"Safety Snapshot (tiny model, live)")
           ax.set_xlabel("class"); ax.set_ylabel("count")
-          import os; os.makedirs("results", exist_ok=True)
-          plt.tight_layout(); plt.savefig("results/tiny_live_summary.png")
+          os.makedirs("results", exist_ok=True)
+          out_png = "results/tiny_live_summary.png"
+          plt.tight_layout(); plt.savefig(out_png)
+          print("Saved", out_png)
           print(s)
           PY
 
@@ -80,7 +103,7 @@ jobs:
         with:
           name: daily-live-eval-safe
           path: |
-            results/tiny_live_outputs.csv
+            results/*_outputs.csv
             results/tiny_live_summary.png
 
       - name: Commit summary chart to main
