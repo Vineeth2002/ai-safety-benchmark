@@ -1,8 +1,8 @@
+detoxify
+pandas
+matplotlib
 transformers
 torch
-pandas
-tqdm
-google-api-python-client
-python-dotenv
 pytrends
-
+requests
+google-api-python-client
