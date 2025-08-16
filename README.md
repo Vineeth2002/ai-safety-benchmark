@@ -1,3 +1,7 @@
+Daily safety snapshot (tiny-gpt2 on live data) is available as workflow artifacts:
+[![Daily Tiny Model Safety Snapshot](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/sweep_tiny_daily.yml/badge.svg)](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/sweep_tiny_daily.yml)
+
+
 [![Daily Google Trends](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/trends_daily.yml/badge.svg)](https://github.com/Vineeth2002/ai-safety-benchmark/actions/workflows/trends_daily.yml)
 
 
