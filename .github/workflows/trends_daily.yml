@@ -2,7 +2,7 @@ name: Daily Google Trends → Live Prompts CSV
 
 on:
   schedule:
-    # Run first in the chain (03:20 UTC). Others follow at 03:30, 03:45, 04:00.
+    # Run first in the chain (03:20 UTC). Others: 03:30, 03:45, 04:00.
     - cron: "20 3 * * *"
   workflow_dispatch:
 
@@ -10,7 +10,6 @@ permissions:
   contents: write
   pull-requests: write
 
-# Prevent overlapping runs (e.g., if one is still running when the next starts)
 concurrency:
   group: trends-daily
   cancel-in-progress: true
@@ -42,7 +41,6 @@ jobs:
         run: |
           python .github/scripts/build_trends.py
 
-      # Attach the CSV(s) to the run for easy download/diagnostics
       - name: Upload dataset artifact
         uses: actions/upload-artifact@v4
         with:
