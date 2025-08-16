@@ -21,44 +21,28 @@ jobs:
         with:
           python-version: "3.11"
 
-      # --------- ROBUST INSTALL: retries; mandatory libs vs best-effort libs ---------
-      - name: Install deps (CPU only; robust with retries)
+      # ---------- FIXED: tokenizers version now compatible with transformers ----------
+      - name: Install deps (CPU only; robust)
         env:
           PIP_DISABLE_PIP_VERSION_CHECK: "1"
           PIP_NO_INPUT: "1"
         run: |
-          set -e
-
-          retry() {
-            # retry <max_tries> <cmd...>
-            n=0; until [ $n -ge "$1" ]; do
-              shift
-              "$@" && break
-              n=$((n+1))
-              echo "[WARN] attempt $n failed; retrying in 5s..."
-              sleep 5
-            done
-            [ $n -lt "$1" ]
-          }
-
           python -m pip install --upgrade pip setuptools wheel
 
-          # ---- Mandatory: pandas/matplotlib/numpy (used for CSV + charts) ----
-          retry 3 pip install --no-cache-dir --prefer-binary "numpy<2.0" \
-                                                  pandas==2.2.2 matplotlib==3.8.4
+          # Base scientific stack (avoid NumPy 2 source builds)
+          pip install --no-cache-dir --prefer-binary "numpy<2.0" pandas==2.2.2 matplotlib==3.8.4
 
-          # ---- Best-effort: torch + transformers (generation); don't fail if hiccups ----
-          ( retry 3 pip install --no-cache-dir --prefer-binary \
-                -f https://download.pytorch.org/whl/torch_stable.html torch==2.2.2+cpu \
-            && echo "[INFO] torch installed" ) || echo "[WARN] torch install skipped"
+          # CPU torch from official wheels
+          pip install --no-cache-dir --prefer-binary \
+            -f https://download.pytorch.org/whl/torch_stable.html \
+            torch==2.2.2+cpu
 
-          ( retry 3 pip install --no-cache-dir --prefer-binary \
-                transformers==4.41.1 tokenizers==0.15.2 \
-            && echo "[INFO] transformers installed" ) || echo "[WARN] transformers install skipped"
+          # ✅ transformers 4.41.1 requires tokenizers >=0.19,<0.20
+          pip install --no-cache-dir --prefer-binary tokenizers==0.19.1 transformers==4.41.1
 
           python -V
           pip freeze | sed -n '1,160p'
-      # -------------------------------------------------------------------------------
+      # -----------------------------------------------------------------------------
 
       - name: Ensure live dataset exists (fallback if missing)
         run: |
@@ -87,29 +71,16 @@ jobs:
 
           rows = []
           try:
-              # If transformers/torch are available, we'll use them; otherwise fallback text.
-              try:
-                  from transformers import AutoTokenizer, AutoModelForCausalLM
-                  have_tf = True
-              except Exception:
-                  have_tf = False
-
-              if have_tf:
-                  tok = AutoTokenizer.from_pretrained("sshleifer/tiny-gpt2")
-                  model = AutoModelForCausalLM.from_pretrained("sshleifer/tiny-gpt2")
-                  for p in prompts:
-                      inputs = tok(p, return_tensors="pt")
-                      out = model.generate(**inputs, max_new_tokens=40, do_sample=True, temperature=0.9,
-                                           pad_token_id=tok.eos_token_id)
-                      resp = tok.decode(out[0], skip_special_tokens=True)
-                      rows.append({"prompt": p, "response": resp})
-              else:
-                  print("[WARN] transformers not available; using safe fallback responses")
-                  for p in prompts:
-                      rows.append({"prompt": p, "response": "I'm sorry, I cannot assist with harmful requests."})
-
+              from transformers import AutoTokenizer, AutoModelForCausalLM
+              tok = AutoTokenizer.from_pretrained("sshleifer/tiny-gpt2")
+              model = AutoModelForCausalLM.from_pretrained("sshleifer/tiny-gpt2")
+              for p in prompts:
+                  inputs = tok(p, return_tensors="pt")
+                  out = model.generate(**inputs, max_new_tokens=40, do_sample=True, temperature=0.9,
+                                       pad_token_id=tok.eos_token_id)
+                  resp = tok.decode(out[0], skip_special_tokens=True)
+                  rows.append({"prompt": p, "response": resp})
           except Exception as e:
-              # Any unexpected error → still produce a valid CSV so the pipeline succeeds
               print("[WARN] tiny model generation failed:", e)
               for p in prompts:
                   rows.append({"prompt": p, "response": "I'm sorry, I cannot assist with harmful requests."})
