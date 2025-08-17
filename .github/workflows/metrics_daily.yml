@@ -31,13 +31,13 @@ jobs:
       - name: Compute metrics
         run: python metrics/compute_metrics.py
 
-      # --- NEW: list results right after compute (debug) ---
+      # Debug: show what's in results right after compute
       - name: Debug – list results after compute
         run: |
           echo "=== results after compute_metrics.py ==="
           ls -lah results || true
 
-      # --- NEW: ensure drift_index.png exists no matter what ---
+      # Guard: ensure drift_index.png exists no matter what
       - name: Ensure drift_index.png exists
         run: |
           python - << 'PY'
@@ -46,7 +46,6 @@ jobs:
           import matplotlib.pyplot as plt
           os.makedirs("results", exist_ok=True)
           if not os.path.exists("results/drift_index.png"):
-              # create a placeholder chart so commit step always has a file
               plt.figure(figsize=(8,4))
               plt.title("Drift Index (created by workflow guard)")
               plt.xlabel("date"); plt.ylabel("JSD (0–1)")
@@ -56,18 +55,10 @@ jobs:
           else:
               print("drift_index.png already exists")
           PY
-
-      # --- Optional: last-resort guard (duplicate safety chart if still missing) ---
-      - name: Last-resort: copy safety chart if drift is missing
-        run: |
-          if [ ! -f results/drift_index.png ] && [ -f results/safety_timeseries.png ]; then
-            cp results/safety_timeseries.png results/drift_index.png
-            echo "Copied safety_timeseries.png to drift_index.png (last-resort guard)"
-          fi
           echo "=== results after guard ==="
           ls -lah results || true
 
-      # keep dated copies
+      # Keep dated copies of charts
       - name: Keep dated copies
         run: |
           stamp=$(date -u +%Y%m%d)
