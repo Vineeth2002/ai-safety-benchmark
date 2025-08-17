@@ -5,20 +5,15 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{amsmath}
-\usepackage{authblk}
-\usepackage{titlesec}
-\titleformat{\section}{\large\bfseries}{\thesection}{0.5em}{}
 
 \title{SafePulse: A Drift-Aware, Live Benchmark for LLM Safety Snapshots}
-\author{Vineeth Animireddy}
-\affil{Independent Researcher}
+\author{Vineeth Animireddy\\ \small Independent Researcher}
 \date{August 2025}
 
 % ---- Safe figure macro: compiles even if file is missing ----
 \newcommand{\safeincludegraphics}[2]{% #1=path #2=caption
   \begin{figure}[h]
     \centering
-    % \IfFileExists is built into LaTeX2e
     \IfFileExists{#1}{%
       \includegraphics[width=0.9\linewidth]{#1}%
     }{%
