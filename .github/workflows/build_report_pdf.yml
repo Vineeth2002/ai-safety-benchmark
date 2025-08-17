@@ -22,12 +22,14 @@ jobs:
         uses: xu-cheng/latex-action@v3
         with:
           root_file: report/paper.tex
-          # use pdflatex (default); avoids xelatex font pulls
           latexmk_use_xelatex: false
-          # show more logs if something goes wrong next time
-          extra_fonts: false
+          # install recommended/extra/font collections to avoid missing .sty issues
+          pre_compile: |
+            tlmgr update --self
+            tlmgr install collection-latexrecommended collection-latexextra collection-fontsrecommended
 
       - name: Upload PDF artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: SafePulse-paper
@@ -35,7 +37,21 @@ jobs:
           retention-days: 14
 
       - name: Commit PDF back to repo
+        if: success()
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "docs: build SafePulse paper.pdf"
           file_pattern: report/paper.pdf
+
+      # If anything goes wrong, capture logs so we can see the exact message
+      - name: Upload LaTeX logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: latex-logs
+          path: |
+            report/*.log
+            report/*.aux
+            report/*.out
+            report/*.fls
+            report/*.fdb_latexmk
