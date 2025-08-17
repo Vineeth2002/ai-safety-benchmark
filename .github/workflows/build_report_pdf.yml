@@ -1,0 +1,40 @@
+name: Build SafePulse PDF (paper.tex)
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [ main ]
+    paths:
+      - "report/paper.tex"
+      - "results/*.png"
+
+permissions:
+  contents: write
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # LaTeX compile action (uses latexmk)
+      - name: Compile LaTeX
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: report/paper.tex
+          latexmk_use_xelatex: true
+          # Keep it simple; your doc is basic and should compile fast
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SafePulse-paper
+          path: report/paper.pdf
+          retention-days: 14
+
+      - name: Commit PDF back to repo
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: build SafePulse paper.pdf"
+          file_pattern: report/paper.pdf
