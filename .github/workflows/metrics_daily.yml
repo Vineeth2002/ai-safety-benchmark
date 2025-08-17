@@ -31,7 +31,7 @@ jobs:
       - name: Compute metrics
         run: python metrics/compute_metrics.py
 
-      # NEW: keep a dated copy of each chart
+      # keep dated copies (optional but useful)
       - name: Keep dated copies
         run: |
           stamp=$(date -u +%Y%m%d)
