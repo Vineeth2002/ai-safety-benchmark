@@ -1,7 +1,9 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
-\usepackage{hyperref}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
 \usepackage{graphicx}
+\usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{authblk}
 \usepackage{titlesec}
@@ -11,6 +13,20 @@
 \author{Vineeth Animireddy}
 \affil{Independent Researcher}
 \date{August 2025}
+
+% ---- Safe figure macro: compiles even if file is missing ----
+\newcommand{\safeincludegraphics}[2]{% #1=path #2=caption
+  \begin{figure}[h]
+    \centering
+    % \IfFileExists is built into LaTeX2e
+    \IfFileExists{#1}{%
+      \includegraphics[width=0.9\linewidth]{#1}%
+    }{%
+      \fbox{\parbox{0.88\linewidth}{\centering \textbf{Figure not available}\\\texttt{#1}}}%
+    }%
+    \caption{#2}
+  \end{figure}
+}
 
 \begin{document}
 \maketitle
@@ -29,31 +45,12 @@ Static benchmarks are essential for comparability but lag behind real-world chan
 \textbf{Metrics:} Daily class proportions; Drift Index (JSD vs 7-day average); S2S.
 
 \section{Results (Aggregate)}
-We report aggregate metrics (no raw generations). Charts below are the \emph{latest} files committed to the repository.
+We report aggregate metrics (no raw generations). Charts below embed the latest PNGs from the repository if present.
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.9\linewidth]{results/tiny_snapshot_summary.png}
-\caption{Tiny Model Safety Snapshot (daily).}
-\end{figure}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.9\linewidth]{results/tiny_live_summary.png}
-\caption{Live Evaluation Snapshot (distilgpt2 via API, daily).}
-\end{figure}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.9\linewidth]{results/safety_timeseries.png}
-\caption{Safety Timeseries (daily class rates over time).}
-\end{figure}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.9\linewidth]{results/drift_index.png}
-\caption{Drift Index (JSD vs 7-day average).}
-\end{figure}
+\safeincludegraphics{results/tiny_snapshot_summary.png}{Tiny Model Safety Snapshot (daily).}
+\safeincludegraphics{results/tiny_live_summary.png}{Live Evaluation Snapshot (distilgpt2 via API, daily).}
+\safeincludegraphics{results/safety_timeseries.png}{Safety Timeseries (daily class rates over time).}
+\safeincludegraphics{results/drift_index.png}{Drift Index (JSD vs 7-day average).}
 
 \section{Limitations and Responsible Use}
 Heuristic labels are coarse; complement with stronger offline scoring and human review. Hosted API variability introduces noise. SafePulse is an operational heartbeat, not a full audit.
