@@ -18,36 +18,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Self-contained LaTeX engine that fetches packages on demand
-      - name: Setup Tectonic
-        uses: tectonic-typesetting/setup-tectonic@v1
+      # Install TinyTeX (small TeX Live) – works reliably on Actions
+      - name: Setup TinyTeX
+        uses: r-lib/actions/setup-tinytex@v2
 
-      # Compile robustly: try legacy CLI first (works on all versions),
-      # then try the modern -X CLI. Always emit logs and list outputs.
-      - name: Compile PDF with Tectonic (robust)
+      # Make sure required collections are present (graphics, hyperref, fonts, etc.)
+      - name: Install TeX packages
         run: |
-          set -euxo pipefail
+          tlmgr update --self
+          tlmgr install latexmk collection-latexrecommended collection-latexextra collection-fontsrecommended
+
+      # Build the PDF (nonstop mode + error details; write to report/)
+      - name: Compile PDF with latexmk
+        run: |
           mkdir -p report
-          echo "Tectonic version:"
-          tectonic --version
-
-          echo "::group::Compile (legacy CLI)"
-          # legacy form: tectonic -o <outdir> <file>
-          if tectonic -o report report/paper.tex; then
-            echo "Legacy compile OK."
-          else
-            echo "Legacy compile failed, trying modern CLI…"
-            echo "::endgroup::"
-            echo "::group::Compile (modern CLI)"
-            # modern form: tectonic -X compile <file> --outdir <dir>
-            tectonic -X compile report/paper.tex --outdir report
-            echo "::endgroup::"
-          fi
-
-          echo "::group::Outputs"
-          ls -lah report || true
-          test -f report/paper.pdf
-          echo "::endgroup::"
+          latexmk -pdf -interaction=nonstopmode -halt-on-error -file-line-error \
+                  -outdir=report report/paper.tex
+          ls -lh report/paper.pdf
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
@@ -59,18 +46,18 @@ jobs:
       - name: Commit PDF back to repo
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "docs: build SafePulse paper.pdf (tectonic robust)"
+          commit_message: "docs: build SafePulse paper.pdf (tinytex + latexmk)"
           file_pattern: report/paper.pdf
 
-      # If anything goes wrong, grab logs so we can see the exact error
-      - name: Upload build logs (on failure)
+      # If anything goes wrong, give us the logs
+      - name: Upload LaTeX logs (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: latex-build-dump
+          name: latex-logs
           path: |
             report/*.log
             report/*.aux
+            report/*.out
             report/*.fls
             report/*.fdb_latexmk
-            report/paper.pdf
