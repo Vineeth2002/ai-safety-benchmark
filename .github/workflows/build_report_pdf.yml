@@ -18,23 +18,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Show repo tree (sanity check)
+        run: |
+          echo "== top level =="
+          ls -la
+          echo "== report/ =="
+          ls -la report || true
+          echo "== results/ =="
+          ls -la results || true
+
+      - name: Verify paper.tex exists (fail early with clear message)
+        run: |
+          if [ ! -f report/paper.tex ]; then
+            echo "::error file=report/paper.tex::report/paper.tex not found. Create it (exact path) and re-run."
+            exit 1
+          fi
+
       # Setup tectonic (self-contained LaTeX engine that auto-downloads packages)
       - name: Setup Tectonic
         uses: tectonic-typesetting/setup-tectonic@v1
 
-      # Compile the paper; try modern CLI first, then fallback to legacy flag if needed
+      # Compile with the legacy-style CLI (most stable across versions)
       - name: Compile PDF with Tectonic
         run: |
           set -e
-          echo "Running tectonic (modern CLI)…"
-          # modern CLI
-          if tectonic -X compile report/paper.tex --outdir report; then
-            echo "Tectonic compile (modern) succeeded."
-          else
-            echo "Modern CLI failed, trying legacy CLI…"
-            tectonic -o report report/paper.tex
-          fi
-          test -f report/paper.pdf && ls -lh report/paper.pdf
+          mkdir -p report
+          # Use legacy CLI (works everywhere); write outputs to report/
+          echo "Compiling with: tectonic -o report report/paper.tex"
+          tectonic -o report report/paper.tex
+          ls -lh report || true
+          test -f report/paper.pdf
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
@@ -46,7 +59,7 @@ jobs:
       - name: Commit PDF back to repo
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "docs: build SafePulse paper.pdf (tectonic)"
+          commit_message: "docs: build SafePulse paper.pdf (tectonic, stable CLI)"
           file_pattern: report/paper.pdf
 
       # If anything goes wrong, capture logs/files for debugging
