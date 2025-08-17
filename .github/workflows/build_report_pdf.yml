@@ -14,21 +14,42 @@ permissions:
 jobs:
   build-pdf:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Use LaTeX action but with the FULL TeXLive image to avoid missing .sty issues
-      - name: Compile LaTeX (texlive-full)
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: report/paper.tex
-          latexmk_use_xelatex: false
-          docker_image: ghcr.io/xu-cheng/texlive-full:latest   # <— big image, but rock-solid
+      # Self-contained LaTeX engine that fetches packages on demand
+      - name: Setup Tectonic
+        uses: tectonic-typesetting/setup-tectonic@v1
+
+      # Compile robustly: try legacy CLI first (works on all versions),
+      # then try the modern -X CLI. Always emit logs and list outputs.
+      - name: Compile PDF with Tectonic (robust)
+        run: |
+          set -euxo pipefail
+          mkdir -p report
+          echo "Tectonic version:"
+          tectonic --version
+
+          echo "::group::Compile (legacy CLI)"
+          # legacy form: tectonic -o <outdir> <file>
+          if tectonic -o report report/paper.tex; then
+            echo "Legacy compile OK."
+          else
+            echo "Legacy compile failed, trying modern CLI…"
+            echo "::endgroup::"
+            echo "::group::Compile (modern CLI)"
+            # modern form: tectonic -X compile <file> --outdir <dir>
+            tectonic -X compile report/paper.tex --outdir report
+            echo "::endgroup::"
+          fi
+
+          echo "::group::Outputs"
+          ls -lah report || true
+          test -f report/paper.pdf
+          echo "::endgroup::"
 
       - name: Upload PDF artifact
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: SafePulse-paper
@@ -36,21 +57,20 @@ jobs:
           retention-days: 14
 
       - name: Commit PDF back to repo
-        if: success()
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "docs: build SafePulse paper.pdf (texlive-full)"
+          commit_message: "docs: build SafePulse paper.pdf (tectonic robust)"
           file_pattern: report/paper.pdf
 
-      # In case anything still goes wrong, collect logs for quick diagnosis
-      - name: Upload LaTeX logs (on failure)
+      # If anything goes wrong, grab logs so we can see the exact error
+      - name: Upload build logs (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: latex-logs
+          name: latex-build-dump
           path: |
             report/*.log
             report/*.aux
-            report/*.out
             report/*.fls
             report/*.fdb_latexmk
+            report/paper.pdf
