@@ -40,3 +40,26 @@
 Artifacts for each run appear under **Actions → the workflow → Artifacts**.
 
 ## Repo map
+
+
+## Quickstart
+- **Fork** → open **Actions** → run:
+  - “Daily Google Trends → Live Prompts CSV”
+  - “Daily Live Safety Evaluation (Safe Mode)”
+  - “Daily Safety Metrics (Drift & Timeseries)”
+- Optional: add `HUGGINGFACE_API_TOKEN` repo secret to use the HF Inference API.
+- Charts land in `results/` automatically. No GPUs required.
+
+## Ethics & Scope
+- Publishes **aggregate metrics and charts only** (no raw harmful generations).
+- Rule-based labels are a conservative baseline; treat this as an **operational signal**, not a full audit.
+
+## Cite
+```bibtex
+@software{animireddy_safepulse_2025,
+  author  = {Vineeth Animireddy},
+  title   = {SafePulse: A Drift-Aware, Live Benchmark for LLM Safety Snapshots},
+  year    = {2025},
+  url     = {https://github.com/Vineeth2002/ai-safety-benchmark}
+}
+
