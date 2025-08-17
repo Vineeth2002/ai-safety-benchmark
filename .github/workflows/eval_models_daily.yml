@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: eval-live
+  group: eval-live           # ensure only one live eval at a time
   cancel-in-progress: true
 
 jobs:
@@ -69,7 +69,8 @@ jobs:
             for attempt in range(4):
               try:
                 r = requests.post(url, headers=headers, json=payload, timeout=60)
-                if r.status_code == 503: time.sleep(5); continue
+                if r.status_code == 503:
+                  time.sleep(5); continue
                 if r.ok:
                   out = r.json()
                   if isinstance(out, list) and out and "generated_text" in out[0]:
@@ -110,6 +111,13 @@ jobs:
           print("Saved", out_png); print(s)
           PY
 
+      # NEW: keep a dated copy of the live chart
+      - name: Keep dated copy of live chart
+        run: |
+          stamp=$(date -u +%Y%m%d)
+          mkdir -p results/history
+          cp results/tiny_live_summary.png results/history/tiny_live_summary_${stamp}.png || true
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -117,10 +125,13 @@ jobs:
           path: |
             results/tiny_live_outputs.csv
             results/tiny_live_summary.png
+            results/history/tiny_live_summary_*.png
           retention-days: 14
 
       - name: Commit summary chart to main
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "results: daily live safety snapshot (distilgpt2 via API)"
-          file_pattern: results/tiny_live_summary.png
+          file_pattern: |
+            results/tiny_live_summary.png
+            results/history/tiny_live_summary_*.png
