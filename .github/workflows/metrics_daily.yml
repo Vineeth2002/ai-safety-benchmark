@@ -18,15 +18,27 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
           pip install --no-cache-dir --prefer-binary pandas matplotlib numpy
+
       - name: Compute metrics
         run: python metrics/compute_metrics.py
+
+      # NEW: keep a dated copy of each chart
+      - name: Keep dated copies
+        run: |
+          stamp=$(date -u +%Y%m%d)
+          mkdir -p results/history
+          cp results/safety_timeseries.png results/history/safety_timeseries_${stamp}.png || true
+          cp results/drift_index.png       results/history/drift_index_${stamp}.png       || true
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -36,7 +48,10 @@ jobs:
             results/drift_index.png
             results/metrics.json
             metrics/history_metrics.csv
+            results/history/safety_timeseries_*.png
+            results/history/drift_index_*.png
           retention-days: 14
+
       - name: Commit charts & history
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -46,3 +61,5 @@ jobs:
             results/drift_index.png
             results/metrics.json
             metrics/history_metrics.csv
+            results/history/safety_timeseries_*.png
+            results/history/drift_index_*.png
