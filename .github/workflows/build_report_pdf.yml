@@ -18,18 +18,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Compile LaTeX with pdflatex
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: report/paper.tex
-          latexmk_use_xelatex: false
-          # install recommended/extra/font collections to avoid missing .sty issues
-          pre_compile: |
-            tlmgr update --self
-            tlmgr install collection-latexrecommended collection-latexextra collection-fontsrecommended
+      # Setup tectonic (self-contained LaTeX engine that auto-downloads packages)
+      - name: Setup Tectonic
+        uses: tectonic-typesetting/setup-tectonic@v1
+
+      # Compile the paper; try modern CLI first, then fallback to legacy flag if needed
+      - name: Compile PDF with Tectonic
+        run: |
+          set -e
+          echo "Running tectonic (modern CLI)…"
+          # modern CLI
+          if tectonic -X compile report/paper.tex --outdir report; then
+            echo "Tectonic compile (modern) succeeded."
+          else
+            echo "Modern CLI failed, trying legacy CLI…"
+            tectonic -o report report/paper.tex
+          fi
+          test -f report/paper.pdf && ls -lh report/paper.pdf
 
       - name: Upload PDF artifact
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: SafePulse-paper
@@ -37,21 +44,20 @@ jobs:
           retention-days: 14
 
       - name: Commit PDF back to repo
-        if: success()
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "docs: build SafePulse paper.pdf"
+          commit_message: "docs: build SafePulse paper.pdf (tectonic)"
           file_pattern: report/paper.pdf
 
-      # If anything goes wrong, capture logs so we can see the exact message
-      - name: Upload LaTeX logs (on failure)
+      # If anything goes wrong, capture logs/files for debugging
+      - name: Upload build logs (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: latex-logs
+          name: latex-build-dump
           path: |
             report/*.log
             report/*.aux
-            report/*.out
             report/*.fls
             report/*.fdb_latexmk
+            report/paper.pdf
