@@ -18,13 +18,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # LaTeX compile action (uses latexmk)
-      - name: Compile LaTeX
+      - name: Compile LaTeX with pdflatex
         uses: xu-cheng/latex-action@v3
         with:
           root_file: report/paper.tex
-          latexmk_use_xelatex: true
-          # Keep it simple; your doc is basic and should compile fast
+          # use pdflatex (default); avoids xelatex font pulls
+          latexmk_use_xelatex: false
+          # show more logs if something goes wrong next time
+          extra_fonts: false
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
