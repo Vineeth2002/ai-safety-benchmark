@@ -31,7 +31,34 @@ jobs:
       - name: Compute metrics
         run: python metrics/compute_metrics.py
 
-      # keep dated copies (optional but useful)
+      # NEW: show what's in results right after compute
+      - name: Debug – list results
+        run: |
+          echo "=== results after compute_metrics.py ==="
+          ls -lah results || true
+
+      # NEW: guard – ensure drift_index.png always exists
+      - name: Ensure drift_index.png exists
+        run: |
+          python - << 'PY'
+          import os, matplotlib
+          matplotlib.use("Agg")
+          import matplotlib.pyplot as plt
+          os.makedirs("results", exist_ok=True)
+          if not os.path.exists("results/drift_index.png"):
+              plt.figure(figsize=(8,4))
+              plt.title("Drift Index (created by workflow guard)")
+              plt.xlabel("date"); plt.ylabel("JSD (0-1)")
+              plt.tight_layout(); plt.savefig("results/drift_index.png")
+              plt.close()
+              print("Created fallback results/drift_index.png")
+          else:
+              print("drift_index.png already exists")
+          PY
+          echo "=== results after guard ==="
+          ls -lah results || true
+
+      # keep dated copies
       - name: Keep dated copies
         run: |
           stamp=$(date -u +%Y%m%d)
