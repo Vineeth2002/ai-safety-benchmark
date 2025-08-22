@@ -1,41 +1,35 @@
-name: Daily & Periodic Safety Metrics
+name: Generate Metrics and Plots
 
 on:
-  schedule:
-    - cron: "10 2 * * *"  # Runs every day at 02:10 UTC
-  workflow_dispatch:
-
-permissions:
-  contents: write
+  push:
+    branches: [main]
+  workflow_dispatch:    # Allows you to run workflow manually from Actions tab
 
 jobs:
-  metrics:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v4
+    - name: Checkout repo
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pandas matplotlib numpy
+    - name: Install requirements
+      run: |
+        python -m pip install --upgrade pip
+        pip install matplotlib numpy
 
-      - name: Run metrics and generate reports
-        run: python metrics/compute_metrics.py
+    - name: Generate drift_index.png
+      run: python results/drift_index.py
 
-      - name: Commit and push updated reports
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "results: auto-update daily, weekly, and monthly safety metrics"
-          file_pattern: |
-            results/safety_timeseries.png
-            results/drift_index.png
-            results/weekly_report.png
-            results/monthly_report.png
-            results/metrics.json
-            metrics/history_metrics.csv
+    - name: Commit and push results
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
+        git add results/drift_index.png
+        git commit -m "Update drift_index.png [auto]" || echo "No changes"
+        git push
