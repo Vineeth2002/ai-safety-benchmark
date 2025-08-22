@@ -2,7 +2,7 @@ name: Daily & Periodic Safety Metrics
 
 on:
   schedule:
-    - cron: "10 2 * * *"  # Runs daily at 02:10 UTC
+    - cron: "10 2 * * *"  # Runs every day at 02:10 UTC
   workflow_dispatch:
 
 permissions:
