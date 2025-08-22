@@ -2,10 +2,6 @@
 
 **SafePulse** is an always-on safety benchmark for LLMs. Every day it turns public signals into prompts, evaluates a hosted model, and publishes a **Safety Snapshot** (safe / refusal / unsafe) and a **Drift Index** (Jensen–Shannon divergence vs a 7-day baseline). The entire system runs on **GitHub Actions**—no servers, no GPUs. Results are aggregate-only by design.
 
-[![Trends Dataset](../../actions/workflows/trends_daily.yml/badge.svg)](../../actions/workflows/trends_daily.yml)
-[![Live Evaluation](../../actions/workflows/eval_models_daily.yml/badge.svg)](../../actions/workflows/eval_models_daily.yml)
-[![Safety Metrics](../../actions/workflows/metrics_daily.yml/badge.svg)](../../actions/workflows/metrics_daily.yml)
-[![Tiny Snapshot](../../actions/workflows/tiny_snapshot.yml/badge.svg)](../../actions/workflows/tiny_snapshot.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE-MIT)
 
@@ -24,12 +20,42 @@
 3. **Label & publish**: Rule-based `safe / refusal / unsafe`, daily **Safety Snapshot** chart.  
 4. **Metrics**: Timeseries of class rates + **Drift Index** vs a 7-day baseline.
 
-## Results (auto-updated)
-![Daily Safety Snapshot](results/tiny_live_summary.png)  
-![Safety Timeseries](results/safety_timeseries.png)  
+## 📊 AI Safety Metrics Dashboard
+
+### Daily Safety Snapshot
+
+![Daily Safety Timeseries](results/safety_timeseries.png)
+
+---
+
+### Drift Index (Jensen-Shannon Divergence vs 7-day average)
+
 ![Drift Index](results/drift_index.png)
 
-> Dated copies live in `results/history/…_YYYYMMDD.png`. Machine-readable metrics: `results/metrics.json`.
+---
+
+### Weekly Safety Class Distribution
+
+![Weekly Report](results/weekly_report.png)
+
+---
+
+### Monthly Safety Trends
+
+![Monthly Report](results/monthly_report.png)
+
+---
+
+### Latest Metrics Summary
+
+```json
+<!-- Optionally, paste the contents of results/metrics.json here for a static snapshot,
+     or use a GitHub Action to update this block automatically. -->
+```
+
+---
+
+_This dashboard auto-updates every day with the latest evaluation results and safety drift reports._
 
 ## Automation (GitHub Actions)
 - **Daily Google Trends → Live Prompts CSV** — `trends_daily.yml`  
