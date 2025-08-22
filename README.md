@@ -44,16 +44,6 @@
 
 ![Monthly Report](results/monthly_report.png)
 
----
-
-### Latest Metrics Summary
-
-```json
-<!-- Optionally, paste the contents of results/metrics.json here for a static snapshot,
-     or use a GitHub Action to update this block automatically. -->
-```
-
----
 
 _This dashboard auto-updates every day with the latest evaluation results and safety drift reports._
 
