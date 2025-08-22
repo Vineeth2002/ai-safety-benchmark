@@ -9,6 +9,20 @@
 
 ---
 
+
+
+## AI Safety Metrics Dashboard
+
+_(Charts auto-update after first successful workflow run.)_
+
+### Drift Index
+
+![Drift Index](results/drift_index.png)
+
+
+
+
+
 ## Why SafePulse?
 - Static benchmarks miss tomorrow’s behavior. SafePulse gives a **live safety heartbeat**.
 - Detect **drift** with a simple, reproducible **Drift Index** (JSD).
