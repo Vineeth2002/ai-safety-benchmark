@@ -63,3 +63,40 @@ Artifacts for each run appear under **Actions → the workflow → Artifacts**.
   url     = {https://github.com/Vineeth2002/ai-safety-benchmark}
 }
 
+
+
+## 📊 AI Safety Metrics Dashboard
+
+### Daily Safety Snapshot
+
+![Daily Safety Timeseries](results/safety_timeseries.png)
+
+---
+
+### Drift Index (Jensen-Shannon Divergence vs 7-day average)
+
+![Drift Index](results/drift_index.png)
+
+---
+
+### Weekly Safety Class Distribution
+
+![Weekly Report](results/weekly_report.png)
+
+---
+
+### Monthly Safety Trends
+
+![Monthly Report](results/monthly_report.png)
+
+---
+
+### Latest Metrics Summary
+
+```json
+<!-- If you want to show the latest metrics.json contents, you can paste them here, or use a GitHub Action to keep this section updated -->
+```
+
+---
+
+_This dashboard auto-updates every day with the latest evaluation results and safety drift reports._
