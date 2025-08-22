@@ -34,32 +34,28 @@ _(Charts auto-update after first successful workflow run.)_
 3. **Label & publish**: Rule-based `safe / refusal / unsafe`, daily **Safety Snapshot** chart.  
 4. **Metrics**: Timeseries of class rates + **Drift Index** vs a 7-day baseline.
 
-## 📊 AI Safety Metrics Dashboard
+## AI Safety Benchmark Dashboard
 
-### Daily Safety Snapshot
-
-![Daily Safety Timeseries](results/safety_timeseries.png)
+This dashboard auto-updates with the latest safety metrics and snapshots.
 
 ---
 
-### Drift Index (Jensen-Shannon Divergence vs 7-day average)
+### Daily Safety Snapshot (DistilGPT-2 via API)
+![Daily Safety Snapshot](results/tiny_live_summary.png)
 
+### Daily Tiny Model Safety Snapshot
+![Daily Tiny Model Safety Snapshot](results/tiny_snapshot_summary.png)
+
+### Daily Safety Timeseries
+![Daily Safety Timeseries](results/safety_timeseries.png)
+
+### Drift Index (Jensen–Shannon Divergence)
 ![Drift Index](results/drift_index.png)
 
 ---
 
-### Weekly Safety Class Distribution
+> _All plots and metrics auto-update via GitHub Actions._
 
-![Weekly Report](results/weekly_report.png)
-
----
-
-### Monthly Safety Trends
-
-![Monthly Report](results/monthly_report.png)
-
-
-_This dashboard auto-updates every day with the latest evaluation results and safety drift reports._
 
 ## Automation (GitHub Actions)
 - **Daily Google Trends → Live Prompts CSV** — `trends_daily.yml`  
